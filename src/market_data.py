@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.exchanges.bitmex_order_book import BitmexOrderBook
+from src.exchanges.htx_order_book import HTXOrderBook
 
 class MarketData:
     
@@ -13,17 +14,15 @@ class MarketData:
         self.api_secret = os.getenv("API_SECRET")
         if not self.api_key or not self.api_secret:
             raise ValueError("Missing API key and/or secret!")
+                
+        self.bybit_order_book = BybitOrderBook()
+        self.bitmex_order_book = BitmexOrderBook()
+        self.htx_order_book = HTXOrderBook()
         
-        self.symbol = "ETHUSDT"
-        
-        self.bybit_connected = False
-        self.bybit_ob = BybitOrderBook()
-        
-        self.bitmex_connected = False
-        self.bitmex_ob = BitmexOrderBook()
-        
+    @property
     def bybit_mid(self) -> float:
-        best_ask = self.bybit_ob.asks[0][0]
-        best_bid = self.bybit_ob.bids[0][0]
-        return (best_ask + best_bid) / 2
+        best_bid, best_ask = self.bybit_order_book.bba[0][0], self.bybit_order_book.bba[0][0]
+        mid = (best_ask + best_bid) / 2
+        print(mid)
+        return mid
     
