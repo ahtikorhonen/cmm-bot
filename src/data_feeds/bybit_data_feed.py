@@ -3,22 +3,27 @@ import orjson
 import websockets
 from typing import Coroutine, Union
 
-from src.market_data import MarketData
+from src.base_order_book import BaseOrderBook
 
 class BybitDataFeed:
-        
-    def __init__(self, market_data: MarketData, depth=200) -> None:
-        self.market_data = market_data
-        self.endpoint = f"wss://stream.bybit.com/v5/public/spot"
-        self.req = json.dumps({"op": "subscribe", "args": [f"orderbook.{depth}.{self.market_data.symbol}"]})
+    
+    _topics = []
+    def __init__(self, bybit_order_book: BaseOrderBook, depth=200) -> None:
+        self.bybit_order_book = bybit_order_book
+        self.symbol = bybit_order_book.symbol
+        self.endpoint = "wss://stream.bybit.com/v5/public/spot"
+        self._topics = [f"orderbook.{depth}.{self.symbol}", f"orderbook.1.{self.symbol}"]
+        self.req = json.dumps({"op": "subscribe", "args": self._topics})
+        self.topic_map = {self._topics[0]: self.bybit_order_book.process,
+                          self._topics[1]: self.bybit_order_book.process_bba}
     
     async def run(self) -> Union[Coroutine, None]:
         """
-        Listens for messages on the WebSocket and updates market data.
+        Listens for messages on the WebSocket and updates bybit order book attributes.
         """
         async for websocket in websockets.connect(self.endpoint):
-            self.market_data.bybit_connected = True
-
+            
+            self.bybit_order_book.is_connected = True
             try:
                 await websocket.send(self.req)
 
@@ -28,8 +33,11 @@ class BybitDataFeed:
                     if "success" in recv:
                         continue
                     
-                    self.market_data.bybit_ob.process(recv)
-
+                    recv_handler = self.topic_map.get(recv["topic"])
+                    
+                    if recv_handler:
+                        recv_handler(recv)
+                        
             except websockets.ConnectionClosed:
                 continue
 
