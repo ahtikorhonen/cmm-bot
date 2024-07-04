@@ -8,7 +8,7 @@ from src.data_feeds.data_feeds import DataFeeds
 
 async def main():
     """
-    Initializes the market data object and concurrently refreshes the parameters from exchange feeds.
+    Initializes the market data object and concurrently refreshes the orderbooks from exchange feeds.
     """
     try:
         market_data = MarketData()

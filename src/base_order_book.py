@@ -23,9 +23,8 @@ class BaseOrderBook():
         """
         self.bids = np.empty((0, 2), dtype=np.float64)
         self.asks = np.empty((0, 2), dtype=np.float64)
-        self.bba = np.ones((2, 2,), dtype=np.float64)
         self.is_connected = False
-        self.symbol = "BTCUSDT"
+        self.symbol = "ETHUSDT"
         
     def update(self, old_bids_or_asks, incoming_bids_or_asks) -> NDArray:
         for price, quantity in incoming_bids_or_asks:
@@ -38,23 +37,14 @@ class BaseOrderBook():
         
     def sort(self) -> None:
         """
-        Sorts the bids in descending order and asks in ascending order by price.
+        Sorts the bids in descending order and asks in ascending order by price. Keep only 500 levels.
         """
-        self.asks = self.asks[self.asks[:, 0].argsort()][:150]
-        self.bids = self.bids[self.bids[:, 0].argsort()[::-1]][:150]
+        self.asks = self.asks[self.asks[:, 0].argsort()][:500]
+        self.bids = self.bids[self.bids[:, 0].argsort()[::-1]][:500]
         
     def process(self, recv: Dict) -> None:
         """
         Abstract method for proccessing incoming orderbook data.
-        
-        Parameters:
-        :recv (Dict): data to be processed.
-        """
-        raise NotImplementedError("Exchange specific children classes should define this method!")
-    
-    def process_bba(self, recv: Dict):
-        """
-        Abstract method for proccessing incoming best bids and asks.
         
         Parameters:
         :recv (Dict): data to be processed.

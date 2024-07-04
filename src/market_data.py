@@ -23,6 +23,5 @@ class MarketData:
     def bybit_mid(self) -> float:
         best_bid, best_ask = self.bybit_order_book.bba[0][0], self.bybit_order_book.bba[0][0]
         mid = (best_ask + best_bid) / 2
-        print(mid)
         return mid
     
