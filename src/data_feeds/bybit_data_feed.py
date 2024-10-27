@@ -28,9 +28,7 @@ class BybitDataFeed(DataFeed):
                 async for msg in websocket:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         recv = loads(msg.data)
-                        
-                        print(recv)
-                        
+                                                
                         if "success" in recv:
                             continue
                         
