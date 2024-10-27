@@ -4,21 +4,22 @@ from typing import Coroutine, Union
 import aiohttp
 from orjson import loads
 
-from src.exchanges.bybit_order_book import BybitOrderBook
+from src.exchanges.binance_order_book import BinanceOrderBook
 from src.data_feeds.data_feed import DataFeed
 
 
-class BybitDataFeed(DataFeed):
+class BinanceDataFeed(DataFeed):
 
-    def __init__(self, order_book: BybitOrderBook) -> None:
-        super().__init__(order_book, "bybit")
-        #self._replacement_map = {"{depth}": self._exchange_ws_details["depth"], "{symbol}": self.symbol}
+    def __init__(self, order_book: BinanceOrderBook) -> None:
+        super().__init__(order_book, "binance")
+        self.symbol = order_book.symbol.lower()
+        self._replacement_map = {"{symbol}": self.symbol}
         self._topics = self.format_topics(self._topics, self._replacement_map)
-        self.req = json.dumps({"op": "subscribe", "args": self._topics})
+        self.req = json.dumps({"method": "SUBSCRIBE", "params": self._topics, "id": 1})
 
     async def run(self) -> Union[Coroutine, None]:
         """
-        Listens for messages on the WebSocket and updates the Bybit order book.
+        Listens for messages on the WebSocket and updates the Binance order book.
         """
         async with self.session.ws_connect(self._ws_endpoint) as websocket:
             self.order_book.is_connected = True
@@ -28,13 +29,11 @@ class BybitDataFeed(DataFeed):
                 async for msg in websocket:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         recv = loads(msg.data)
-                        
-                        print(recv)
-                        
-                        if "success" in recv:
-                            continue
-                        
-                        self.order_book.process(recv)
+                                                
+                        if "e" in recv:
+                            self.order_book.process(recv)
+                        if "ping" in recv:
+                            await websocket.send_str(json.dumps({"pong": recv["ping"]}))
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
@@ -44,4 +43,4 @@ class BybitDataFeed(DataFeed):
                 pass
 
             except Exception as e:
-                raise Exception(f"Error with Bybit data feed - {e}")
+                raise Exception(f"Error with Binance data feed - {e}")

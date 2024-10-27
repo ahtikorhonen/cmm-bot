@@ -3,18 +3,13 @@ from typing import Dict
 import numpy as np
 from numpy.typing import NDArray
 
-class BaseOrderBook():
+class BaseOrderBook:
     """
     A base class for maintaining and updating an order book with incoming orders.
     
     Attributes
     :bids (NDArray): stores the bids for all price levels. Each row is represented by a (prize, size) pair.
     :asks (NDArray): stores the asks for all price levels. Each row is represented by a (prize, size) pair.
-    
-    Methods
-    sort():
-    update():
-    proccess():
     """
     
     def __init__(self) -> None:
@@ -34,7 +29,7 @@ class BaseOrderBook():
                 old_bids_or_asks = np.vstack((old_bids_or_asks, np.array([price, quantity])))
 
         return old_bids_or_asks
-        
+    
     def sort(self) -> None:
         """
         Sorts the bids in descending order and asks in ascending order by price. Keep only 500 levels.
