@@ -1,9 +1,4 @@
 {
-    "htx": {
-        "ws_endpoint": "wss://api.huobi.pro/ws",
-        "topics": ["market.{symbol}.depth.step0", "market.{symbol}.mbp.{depth}"],
-        "depth": "150"
-    },
     "bybit": {
         "ws_endpoint": "wss://stream.bybit.com/v5/public/spot",
         "topics": ["orderbook.{depth}.{symbol}", "orderbook.1.{symbol}"],

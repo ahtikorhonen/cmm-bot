@@ -5,7 +5,6 @@ from numpy.typing import NDArray
 
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.exchanges.binance_order_book import BinanceOrderBook
-from src.exchanges.htx_order_book import HTXOrderBook
 
 class MarketData:
     
@@ -17,7 +16,6 @@ class MarketData:
                 
         self.bybit_order_book = BybitOrderBook()
         self.binance_order_book = BinanceOrderBook()
-        self.htx_order_book = HTXOrderBook()
         
     @property
     def bybit_mid(self) -> float:
