@@ -4,7 +4,7 @@ import numpy as np
 
 from src.base_order_book import BaseOrderBook
 
-class HTXOrderBook(BaseOrderBook):
+class BinanceOrderBook(BaseOrderBook):
     
     def _initialize(self, data):
         """
@@ -26,12 +26,10 @@ class HTXOrderBook(BaseOrderBook):
 
         Parameters
         :tick (Dict): the incoming message containing order book or delta
-        """
-        asks = np.array(tick["asks"], dtype=float)
-        bids = np.array(tick["bids"], dtype=float)
+        """        
+        asks = np.array(tick["a"], dtype=float)
+        bids = np.array(tick["b"], dtype=float)
         
         self.asks = self.update(self.asks, asks)
         self.bids = self.update(self.bids, bids)
         self.sort()
-
-        

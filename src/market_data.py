@@ -4,7 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from src.exchanges.bybit_order_book import BybitOrderBook
-from src.exchanges.bitmex_order_book import BitmexOrderBook
+from src.exchanges.binance_order_book import BinanceOrderBook
 from src.exchanges.htx_order_book import HTXOrderBook
 
 class MarketData:
@@ -16,7 +16,7 @@ class MarketData:
             raise ValueError("Missing API key and/or secret!")
                 
         self.bybit_order_book = BybitOrderBook()
-        self.bitmex_order_book = BitmexOrderBook()
+        self.binance_order_book = BinanceOrderBook()
         self.htx_order_book = HTXOrderBook()
         
     @property

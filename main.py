@@ -6,6 +6,7 @@ load_dotenv()
 from src.market_data import MarketData
 from src.data_feeds.data_feeds import DataFeeds
 
+
 async def main():
     """
     Initializes the market data object and concurrently refreshes the orderbooks from exchange feeds.
