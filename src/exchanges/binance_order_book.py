@@ -6,7 +6,7 @@ from src.base_order_book import BaseOrderBook
 
 class BinanceOrderBook(BaseOrderBook):
     
-    def _initialize(self, data):
+    def initialize(self, data):
         """
         Handles the initial request containig the entire order book.
 
@@ -14,7 +14,9 @@ class BinanceOrderBook(BaseOrderBook):
         :data (Dict): the incoming data containing the current bids and asks.
         """
         asks = np.array(data["asks"], dtype=float)
+        asks = asks[asks[:,1] != 0]
         bids = np.array(data["bids"], dtype=float)
+        bids = bids[bids[:,1] != 0]
 
         self.asks = asks
         self.bids = bids

@@ -1,5 +1,6 @@
 aiohttp==3.10.5
 pybit==5.7.0
+python-binance==1.0.21
 python-dotenv==1.0.1
 numpy==1.26.4
 numba==0.60.0

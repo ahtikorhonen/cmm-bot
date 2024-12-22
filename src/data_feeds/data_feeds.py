@@ -13,9 +13,7 @@ class DataFeeds:
         """
         Starts the WebSocket data feeds.
         """
-        tasks = [
+        await asyncio.gather(
             asyncio.create_task(BybitDataFeed(self.market_data.bybit_order_book).run()),
             asyncio.create_task(BinanceDataFeed(self.market_data.binance_order_book).run())
-        ]
-        
-        await asyncio.gather(*tasks)
+        )

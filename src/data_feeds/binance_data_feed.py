@@ -2,6 +2,7 @@ import json
 from typing import Coroutine, Union
 
 import aiohttp
+from binance.client import Client
 from orjson import loads
 
 from src.exchanges.binance_order_book import BinanceOrderBook
@@ -12,8 +13,8 @@ class BinanceDataFeed(DataFeed):
 
     def __init__(self, order_book: BinanceOrderBook) -> None:
         super().__init__(order_book, "binance")
-        self.symbol = order_book.symbol.lower()
-        self._replacement_map = {"{symbol}": self.symbol}
+        self.symbol = order_book.symbol
+        self._replacement_map = {"{symbol}": self.symbol.lower()}
         self._topics = self.format_topics(self._topics, self._replacement_map)
         self.req = json.dumps({"method": "SUBSCRIBE", "params": self._topics, "id": 1})
 
@@ -29,7 +30,7 @@ class BinanceDataFeed(DataFeed):
                 async for msg in websocket:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         recv = loads(msg.data)
-                                                
+                                                                                        
                         if "e" in recv:
                             self.order_book.process(recv)
                         if "ping" in recv:
@@ -39,8 +40,7 @@ class BinanceDataFeed(DataFeed):
                         break
 
             except aiohttp.ClientConnectionError as e:
-                # TODO: Handle reconnection logic
-                pass
+                await websocket.send_str(self.req)
 
             except Exception as e:
                 raise Exception(f"Error with Binance data feed - {e}")

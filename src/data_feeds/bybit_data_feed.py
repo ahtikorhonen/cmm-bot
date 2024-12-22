@@ -12,7 +12,6 @@ class BybitDataFeed(DataFeed):
 
     def __init__(self, order_book: BybitOrderBook) -> None:
         super().__init__(order_book, "bybit")
-        #self._replacement_map = {"{depth}": self._exchange_ws_details["depth"], "{symbol}": self.symbol}
         self._topics = self.format_topics(self._topics, self._replacement_map)
         self.req = json.dumps({"op": "subscribe", "args": self._topics})
 
@@ -38,8 +37,7 @@ class BybitDataFeed(DataFeed):
                         break
 
             except aiohttp.ClientConnectionError as e:
-                # TODO: Handle reconnection logic
-                pass
+                await websocket.send_str(self.req)
 
             except Exception as e:
                 raise Exception(f"Error with Bybit data feed - {e}")
