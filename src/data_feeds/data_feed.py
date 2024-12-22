@@ -1,5 +1,5 @@
 from typing import Coroutine, Union
-from utils import read_json
+from utils.utils import read_json
 
 from aiohttp import ClientSession
 

@@ -7,7 +7,6 @@ from src.exchanges.bybit_order_book import BybitOrderBook
 from src.exchanges.binance_order_book import BinanceOrderBook
 
 class MarketData:
-    
     def __init__(self) -> None:
         self.api_key = os.getenv("API_KEY")
         self.api_secret = os.getenv("API_SECRET")
@@ -16,10 +15,12 @@ class MarketData:
                 
         self.bybit_order_book = BybitOrderBook()
         self.binance_order_book = BinanceOrderBook()
+        self.initializing = True
         
-    @property
-    def bybit_mid(self) -> float:
-        best_bid, best_ask = self.bybit_order_book.bba[0][0], self.bybit_order_book.bba[0][0]
-        mid = (best_ask + best_bid) / 2
-        return mid
-    
+        self.orders = {}
+        
+    def bybit_bba(self) -> float:
+        return self.bybit_order_book.bids[0][0], self.bybit_order_book.bids[0][1], self.bybit_order_book.asks[0][0], self.bybit_order_book.asks[0][1]
+        
+    def binance_bba(self) -> float:
+        return self.binance_order_book.bids[0][0], self.binance_order_book.bids[0][1], self.binance_order_book.asks[0][0], self.binance_order_book.asks[0][1]
