@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.exchanges.binance_order_book import BinanceOrderBook
 
+
 class MarketData:
     def __init__(self) -> None:
         self.api_key = os.getenv("API_KEY")
