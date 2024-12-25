@@ -21,7 +21,7 @@ class MarketData:
         self.orders = {}
         
     def bybit_bba(self) -> float:
-        return self.bybit_order_book.bids[0][0], self.bybit_order_book.bids[0][1], self.bybit_order_book.asks[0][0], self.bybit_order_book.asks[0][1]
+        return self.bybit_order_book.bids[0][0], self.bybit_order_book.asks[0][0]
         
     def binance_bba(self) -> float:
-        return self.binance_order_book.bids[0][0], self.binance_order_book.bids[0][1], self.binance_order_book.asks[0][0], self.binance_order_book.asks[0][1]
+        return self.binance_order_book.bids[0][0], self.binance_order_book.asks[0][0]
