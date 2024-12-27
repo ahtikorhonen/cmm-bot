@@ -1,8 +1,8 @@
 import asyncio
 
 from src.market_data import MarketData
-from src.data_feeds.bybit_data_feed import BybitDataFeed
-from src.data_feeds.binance_data_feed import BinanceDataFeed
+from data_feeds.bybit.bybit_data_feed import BybitDataFeed
+from data_feeds.binance.binance_data_feed import BinanceDataFeed
 
 class DataFeeds:
     
