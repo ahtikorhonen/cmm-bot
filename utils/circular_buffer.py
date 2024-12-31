@@ -10,8 +10,8 @@ spec = [
 ]
 
 @jitclass(spec)
-class WindowArray:
-    def __init__(self, capacity=100, dtype=float64):
+class CircularBuffer:
+    def __init__(self, capacity=1000, dtype=float64):
         """
         A fixed size array for storing mid prices from which volatility is calculated
         """
@@ -35,7 +35,7 @@ class WindowArray:
     def vol(self):
         """
         Calculate standard deviation of the log differences of the values
-        in the array i.e. volatility for prices
+        in the array i.e. volatility for mid prices prices
         """
         log_diff = np.diff(np.log(self.arr[:self.size]))
         return np.std(log_diff)

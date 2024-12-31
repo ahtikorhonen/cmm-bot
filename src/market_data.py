@@ -1,10 +1,8 @@
 import os
 
-import numpy as np
-from numpy.typing import NDArray
-
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.exchanges.binance_order_book import BinanceOrderBook
+from utils.circular_buffer import CircularBuffer
 
 
 class MarketData:
@@ -16,9 +14,9 @@ class MarketData:
                 
         self.bybit_order_book = BybitOrderBook()
         self.binance_order_book = BinanceOrderBook()
-        self.initializing = True
         
-        self.orders = {}
+        self.current_orders = {}
+        self.mid_prices = CircularBuffer()
         
     def bybit_bba(self) -> float:
         return self.bybit_order_book.bids[0][0], self.bybit_order_book.asks[0][0]
