@@ -2,6 +2,8 @@ import numpy as np
 from numba import int32, float64
 from numba.experimental import jitclass
 
+from utils.jit_funcs import nbround
+
 
 spec = [
     ('arr', float64[:]),
@@ -39,7 +41,7 @@ class CircularBuffer:
     def vol(self):
         """
         Calculate standard deviation of the log differences of the values
-        in the array i.e. volatility for mid prices prices
+        in the array i.e. volatility for mid prices
         """
         log_diff = np.diff(np.log(self.arr[:self.size]))
         return np.std(log_diff)
@@ -50,6 +52,13 @@ class CircularBuffer:
         if ask == 0:
             ask = self.last_ask
         
-        self.append((bid + ask) / 2)
+        mid = nbround((bid + ask) / 2, 2)
+        self.append(mid)
         self.last_bid = bid
         self.last_ask = ask
+        
+    def mid_price(self):
+        """
+        Returns the latest recorded mid price
+        """
+        return self.arr[self.size - 1]
