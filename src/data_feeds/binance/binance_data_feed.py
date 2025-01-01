@@ -2,39 +2,41 @@ import json
 from typing import Coroutine, Union
 
 import aiohttp
-from binance.client import Client
 from orjson import loads
 
 from src.exchanges.binance_order_book import BinanceOrderBook
 from src.data_feeds.data_feed import DataFeed
+from src.data_feeds.endpoints import BINANCE_WS_ENDPOINT
 
 
 class BinanceDataFeed(DataFeed):
 
     def __init__(self, order_book: BinanceOrderBook) -> None:
-        super().__init__(order_book, "binance")
-        self.symbol = order_book.symbol
-        self._replacement_map = {"{symbol}": self.symbol.lower()}
-        self._topics = self.format_topics(self._topics, self._replacement_map)
-        self.req = json.dumps({"method": "SUBSCRIBE", "params": self._topics, "id": 1})
+        super().__init__(order_book)
+        self.topics = [f"{self.symbol.lower()}@depth@100ms"]
+        self.topic_map = {"depthUpdate": self.order_book.process}
+        self.req = json.dumps({"method": "SUBSCRIBE", "params": self.topics, "id": 1})
 
     async def run(self) -> Union[Coroutine, None]:
         """
         Listens for messages on the WebSocket and updates the Binance order book.
         """
-        async with self.session.ws_connect(self._ws_endpoint) as websocket:
+        async with self.session.ws_connect(BINANCE_WS_ENDPOINT) as websocket:
+            
             self.order_book.is_connected = True
+
             try:
                 await websocket.send_str(self.req)
 
                 async for msg in websocket:
                     if msg.type == aiohttp.WSMsgType.TEXT:
+                        
                         recv = loads(msg.data)
                                                                                         
                         if "e" in recv:
-                            self.order_book.process(recv)
-                        if "ping" in recv:
-                            await websocket.send_str(json.dumps({"pong": recv["ping"]}))
+                            topic_handler = self.topic_map[recv["e"]]
+                            topic_handler(recv)
+                            continue
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break

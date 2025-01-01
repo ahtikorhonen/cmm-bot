@@ -1,8 +1,8 @@
 import asyncio
 
 from src.market_data import MarketData
-from data_feeds.bybit.bybit_data_feed import BybitDataFeed
-from data_feeds.binance.binance_data_feed import BinanceDataFeed
+from src.data_feeds.bybit.bybit_data_feed import BybitDataFeed
+from src.data_feeds.binance.binance_data_feed import BinanceDataFeed
 
 class DataFeeds:
     
@@ -14,6 +14,6 @@ class DataFeeds:
         Starts the WebSocket data feeds.
         """
         await asyncio.gather(
-            asyncio.create_task(BybitDataFeed(self.market_data.bybit_order_book).run()),
+            asyncio.create_task(BybitDataFeed(self.market_data.bybit_order_book, self.market_data.mid_prices).run()),
             asyncio.create_task(BinanceDataFeed(self.market_data.binance_order_book).run())
         )

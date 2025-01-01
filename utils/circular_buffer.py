@@ -7,6 +7,8 @@ spec = [
     ('arr', float64[:]),
     ('capacity', int32),
     ('size', int32),
+    ('last_bid', float64),
+    ('last_ask', float64),
 ]
 
 @jitclass(spec)
@@ -18,6 +20,8 @@ class CircularBuffer:
         self.arr = np.zeros(capacity, dtype)
         self.capacity = capacity
         self.size = 0
+        self.last_bid = 0
+        self.last_ask = 0
         
     def append(self, value):
         """
@@ -40,3 +44,12 @@ class CircularBuffer:
         log_diff = np.diff(np.log(self.arr[:self.size]))
         return np.std(log_diff)
     
+    def process_bba(self, bid, ask):
+        if bid == 0:
+            bid = self.last_bid
+        if ask == 0:
+            ask = self.last_ask
+        
+        self.append((bid + ask) / 2)
+        self.last_bid = bid
+        self.last_ask = ask
