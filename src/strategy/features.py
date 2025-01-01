@@ -3,27 +3,21 @@ from numba import njit, float64, prange
 
 
 @njit(float64(float64[:,:], float64[:,:]), cache=True)
-def vwmid(bids: np.ndarray, asks: np.ndarray) -> float:
+def ob_imb(bids: np.ndarray, asks: np.ndarray) -> float:
     """
-    Calculate the volume weighted mid price for a given orderbook
+    Orderbook imbalance i.e. the ratio of bid volume to the total order book volume.
+    Signals the buy/sell pressure in the order book at the moment
     :bids (np.ndarray): represents the bids in a lob with two columns, prize and size
     :asks (np.ndarray): represents the asks in a lob with two columns, prize and size
-    :return (float): the volume weighted mid price
+    :return (float): order book imbalance
     """
-    try:
-        vwap_bids = np.sum(bids[:, 0] * bids[:, 1]) / np.sum(bids[:, 1])
-        vwap_asks = np.sum(asks[:, 0] * asks[:, 1]) / np.sum(asks[:, 1])
-
-        # Compute the volume-weighted mid-price
-        volume_weighted_mid_price = (vwap_bids + vwap_asks) / 2
-
-        return volume_weighted_mid_price
+    vol_bids = np.sum(bids[:, 1])
+    vol_asks = np.sum(asks[:, 1])
     
-    except Exception:
-        raise Exception("Failed to compute mid-price")
+    return (vol_bids - vol_asks) / (vol_bids + vol_asks)
 
-@njit(float64(float64[:, :], float64[:, :], float64), parallel=True, nogil=True, cache=True)
-def calculate_vw_mid_with_threshold(bids, asks, volume_threshold):
+@njit(float64(float64[:, :], float64[:, :], float64), cache=True)
+def vw_mid(bids, asks, volume_threshold):
     """
     Calculate the volume weighted mid price for a given orderbook until a certain volume threshold
     :bids (np.ndarray): represents the bids in a lob with two columns, prize and size
@@ -35,7 +29,7 @@ def calculate_vw_mid_with_threshold(bids, asks, volume_threshold):
         accumulated_volume = 0.0
         weighted_sum = 0.0
 
-        for i in prange(levels.shape[0]):
+        for i in range(levels.shape[0]):
             price = levels[i, 0]
             volume = levels[i, 1]
 
@@ -55,7 +49,5 @@ def calculate_vw_mid_with_threshold(bids, asks, volume_threshold):
 
     vwap_bids = vwap_with_threshold(bids, volume_threshold)
     vwap_asks = vwap_with_threshold(asks, volume_threshold)
-    
-    volume_weighted_mid_price = (vwap_bids + vwap_asks) / 2
-    
-    return volume_weighted_mid_price
+        
+    return (vwap_bids + vwap_asks) / 2
