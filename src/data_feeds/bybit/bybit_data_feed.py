@@ -15,8 +15,8 @@ class BybitDataFeed(DataFeed):
     def __init__(self, order_book: BybitOrderBook, mid_prices: CircularBuffer) -> None:
         super().__init__(order_book)
         self.mid_prices = mid_prices
-        self.topics = [f"orderbook.{self.depth}.{self.symbol}"] #, f"orderbook.1.{self.symbol}"]
-        self.topic_map = {self.topics[0]: self.order_book.process} #, self.topics[1]: self.process_bba}
+        self.topics = [f"orderbook.{self.depth}.{self.symbol}", f"orderbook.1.{self.symbol}"]
+        self.topic_map = {self.topics[0]: self.order_book.process, self.topics[1]: self.process_bba}
         self.req = json.dumps({"op": "subscribe", "args": self.topics})
 
     async def run(self) -> Union[Coroutine, None]:
