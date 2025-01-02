@@ -1,0 +1,1 @@
+BYBIT_WS_ENDPOINT = "wss://stream.bybit.com/v5/public/spot"

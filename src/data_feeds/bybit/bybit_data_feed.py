@@ -6,7 +6,7 @@ from orjson import loads
 
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.data_feeds.data_feed import DataFeed
-from src.data_feeds.endpoints import BYBIT_WS_ENDPOINT
+from src.data_feeds.bybit.endpoints import BYBIT_WS_ENDPOINT
 from utils.circular_buffer import CircularBuffer
 
 

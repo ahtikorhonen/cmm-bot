@@ -6,7 +6,7 @@ from orjson import loads
 
 from src.exchanges.binance_order_book import BinanceOrderBook
 from src.data_feeds.data_feed import DataFeed
-from src.data_feeds.endpoints import BINANCE_WS_ENDPOINT
+from src.data_feeds.binance.endpoints import BINANCE_WS_ENDPOINT
 
 
 class BinanceDataFeed(DataFeed):
