@@ -5,8 +5,7 @@ from numba import njit, float64, prange
 @njit(float64(float64[:,:], float64[:,:]), cache=True)
 def ob_imb(bids: np.ndarray, asks: np.ndarray) -> float:
     """
-    Orderbook imbalance i.e. the ratio of bid volume to the total order book volume.
-    Signals the buy/sell pressure in the order book at the moment
+    Orderbook imbalance, signals the buy/sell pressure in the order book at the moment
     :bids (np.ndarray): represents the bids in a lob with two columns, prize and size
     :asks (np.ndarray): represents the asks in a lob with two columns, prize and size
     :return (float): order book imbalance
