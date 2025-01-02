@@ -3,8 +3,8 @@ from src.data_feeds.bybit.bybit_public_api import BybitPublicAPI
 
 mm_parameters = {
     "lot_size": 0,
-    "tick_size": 0,
-    "base_spread": 0,
+    "tick_size": 0.01,
+    "min_spread": 5, # bps
     "symbol": "ETHUSDT",
     "order_book_depth": 200,
     "min_q": 0,

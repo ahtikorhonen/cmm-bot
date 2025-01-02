@@ -33,17 +33,14 @@ class MarketMaker:
     
     def spread(self) -> float:
         """
-        Scales spread based on short-term volatility. The volatility
-        is scaled using a linear model that was fitted to historical order book data.
-        the model coefficients are, slope = 0.432667 and intercept = 1 which is the tick size.
-        Note that this model was fitted to ETHUSDT data and more volatility instruments
-        probably require more aggressive scaling.
+        Linearly scales spread based on short-term volatility
         :return (float): volatility scaled spread
         """
-        spread = nbround(self.tick_size + 0.432667 * self.market_data.mid_prices.vol(),2)
-        print(spread)
+        base_spread = (self.min_spread * 10**-5) * self.market_data.mid_prices.mid_price()
+        scaled_spread = nbround(base_spread + 0.5 * self.market_data.mid_prices.vol(), 2)
+        print(scaled_spread)
 
-        return spread
+        return scaled_spread
         
     def fair_value(self) -> float:
         """
