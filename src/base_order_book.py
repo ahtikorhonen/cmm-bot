@@ -1,7 +1,6 @@
-from typing import Dict
-
 import numpy as np
 from numpy.typing import NDArray
+
 
 class BaseOrderBook:
     """
@@ -19,7 +18,6 @@ class BaseOrderBook:
         self.bids = np.empty((0, 2), dtype=np.float64)
         self.asks = np.empty((0, 2), dtype=np.float64)
         self.is_connected = False
-        self.symbol = "ETHUSDT"
         
     def update(self, old_bids_or_asks, incoming_bids_or_asks) -> NDArray:
         for price, quantity in incoming_bids_or_asks:
@@ -37,11 +35,11 @@ class BaseOrderBook:
         self.asks = self.asks[self.asks[:, 0].argsort()][:500]
         self.bids = self.bids[self.bids[:, 0].argsort()[::-1]][:500]
         
-    def process(self, recv: Dict) -> None:
+    def process(self, recv: dict) -> None:
         """
         Abstract method for proccessing incoming orderbook data.
         
         Parameters:
-        :recv (Dict): data to be processed.
+        :recv (dict): data to be processed.
         """
         raise NotImplementedError("Exchange specific children classes should define this method!")

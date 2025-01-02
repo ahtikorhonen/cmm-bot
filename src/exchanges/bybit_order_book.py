@@ -1,8 +1,7 @@
-from typing import Dict
-
 import numpy as np
 
 from src.base_order_book import BaseOrderBook
+
 
 class BybitOrderBook(BaseOrderBook):
     
@@ -11,10 +10,10 @@ class BybitOrderBook(BaseOrderBook):
         self.asks = asks
         self.sort()
                 
-    def process(self, msg: Dict) -> None:
+    def process(self, msg: dict) -> None:
         """
         Handles incoming WebSocket messages to update the order book.
-        :msg (Dict): the incoming message containing either a snapshot or delta.
+        :msg (dict): the incoming message containing either a snapshot or delta.
         """
         asks = np.array(msg["data"]["a"], dtype=float)
         bids = np.array(msg["data"]["b"], dtype=float)
