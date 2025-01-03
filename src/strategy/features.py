@@ -1,5 +1,5 @@
 import numpy as np
-from numba import njit, float64, prange
+from numba import njit, float64, int32
 
 
 @njit(float64(float64[:,:], float64[:,:]), cache=True)
@@ -15,22 +15,23 @@ def ob_imb(bids: np.ndarray, asks: np.ndarray) -> float:
     
     return (vol_bids - vol_asks) / (vol_bids + vol_asks)
 
-@njit(float64(float64[:, :], float64[:, :], float64), cache=True)
-def vw_mid(bids, asks, volume_threshold):
+@njit(float64(float64[:, :], float64[:, :], int32, float64), cache=True)
+def vw_mid(bids, asks, volume_threshold, exchange_rate):
     """
     Calculate the volume weighted mid price for a given orderbook until a certain volume threshold
     :bids (np.ndarray): represents the bids in a lob with two columns, prize and size
     :asks (np.ndarray): represents the asks in a lob with two columns, prize and size
-    :volume_threshold (float): volume threshold for calculating the mid price
+    :volume_threshold (int): usd volume threshold for calculating the mid price
+    :exchange_rate (float): usd price for a given instrument
     :return (float): the volume weighted mid price
     """
-    def vwap_with_threshold(levels, threshold):
+    def vwap(levels, threshold, rate):
         accumulated_volume = 0.0
         weighted_sum = 0.0
 
         for i in range(levels.shape[0]):
             price = levels[i, 0]
-            volume = levels[i, 1]
+            volume = levels[i, 1] * rate
 
             if accumulated_volume + volume > threshold:
                 remaining_volume = threshold - accumulated_volume
@@ -44,9 +45,9 @@ def vw_mid(bids, asks, volume_threshold):
         try:
             return weighted_sum / accumulated_volume
         except Exception:
-            raise Exception("Failed to compute mid-price")
+            raise Exception("Failed to compute mid price")
 
-    vwap_bids = vwap_with_threshold(bids, volume_threshold)
-    vwap_asks = vwap_with_threshold(asks, volume_threshold)
+    vwap_bids = vwap(bids, volume_threshold, exchange_rate)
+    vwap_asks = vwap(asks, volume_threshold, exchange_rate)
         
     return (vwap_bids + vwap_asks) / 2

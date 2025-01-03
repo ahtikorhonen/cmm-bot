@@ -1,26 +1,25 @@
+from src.market_data import MarketData
 from src.strategy.features import vw_mid
 from src.parameters import mm_parameters
 from utils.jit_funcs import nbround
 
 
 class MarketMaker:
-    """
-    Calculates fair value, spread and skew based on current order book states, past volatility and inventory
-    """
-    def __init__(self, market_data):
+    def __init__(self, market_data: MarketData):
         self.market_data = market_data
         self.min_spread = mm_parameters["min_spread"]
 
-    def get_quotes(self):
+    def get_quotes(self) -> tuple[float, float]:
         """
-        TODO: document
+        Calculates fair value, spread and skew based on current order book states, past volatility and inventory
+        :return (tuple[float, float]): bid and ask prices to quote
         """
         fair_value = self.fair_value()
         spread = self.spread()
         skew = self.skew()
         
-        bid = fair_value - spread + skew
-        ask = fair_value + spread + skew
+        bid = nbround(fair_value - spread + skew, 2)
+        ask = nbround(fair_value + spread + skew, 2)
         
         return bid, ask
         
@@ -36,18 +35,35 @@ class MarketMaker:
         Linearly scales spread based on short-term volatility
         :return (float): volatility scaled spread
         """
-        base_spread = (self.min_spread * 10**-5) * self.market_data.mid_prices.mid_price()
-        scaled_spread = nbround(base_spread + 0.5 * self.market_data.mid_prices.vol(), 2)
-        print(scaled_spread)
+        bps_conversion_factor = 10**-5
+        model_slope = 0.5
+        
+        base_spread = self.min_spread * self.market_data.mid_prices.mid_price() * bps_conversion_factor
+        scaled_spread = base_spread + model_slope * self.market_data.mid_prices.vol()
 
         return scaled_spread
         
-    def fair_value(self) -> float:
+    def fair_value(self, volume_threshold: int = 1_000_000) -> float:
         """
-        Calculate the fair value of an instrument as the mean
-        between the 1mm usd volume weighted mid prices on bybit and binance
+        Calculate the fair value of an instrument as the weighted mean
+        between the 1mm usd volume weighted mid prices on bybit and binance order books
+        :volume_threshold (int): volume threshold until which volume weighted average
+                                   price is calculated from both sides of the order book
+        :return (float): fair value of the traded instrument
         """
-        bybit_vwmid = vw_mid(self.market_data.bybit_order_book.bids, self.market_data.bybit_order_book.asks, 250.0)
-        binance_vwmid = vw_mid(self.market_data.binance_order_book.bids, self.market_data.binance_order_book.asks, 250.0)
+        usd_price = self.market_data.mid_prices.mid_price()
+        bybit_vw_mid = vw_mid(
+                              self.market_data.bybit_order_book.bids,
+                              self.market_data.bybit_order_book.asks,
+                              volume_threshold,
+                              usd_price
+                            )
         
-        return bybit_vwmid * 0.67 + binance_vwmid * 0.33
+        binance_vw_mid = vw_mid(
+                              self.market_data.binance_order_book.bids,
+                              self.market_data.binance_order_book.asks,
+                              volume_threshold,
+                              usd_price
+                            )
+        
+        return bybit_vw_mid * 0.67 + binance_vw_mid * 0.33
