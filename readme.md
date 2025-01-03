@@ -1,4 +1,4 @@
-A single threaded asynchronous crypto market making bot for Bybit spot instruments.
+A single threaded asynchronous crypto market making bot for Bybit perpetual contracts.
 
 Features:
 * maintains two real time order books for a certain instrument through websocket connections
@@ -6,3 +6,9 @@ Features:
 * calculates a spread based on short-term volatility
 * skews quotes based on current inventory
 * sends quotes via Bybit API
+
+TODO:
+* implement bybit private and public APIs
+* add logging
+* calculate skew based on inventory
+* parse websocket messages with cython
