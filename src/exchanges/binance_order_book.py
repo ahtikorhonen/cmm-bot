@@ -10,8 +10,8 @@ class BinanceOrderBook(BaseOrderBook):
         Handles incoming WebSocket messages to update the order book.
         :msg (dict): the incoming message containing order book updates
         """        
-        asks = np.array(msg["a"], dtype=float)
-        bids = np.array(msg["b"], dtype=float)
+        asks = np.array(msg["data"]["a"], dtype=float)
+        bids = np.array(msg["data"]["b"], dtype=float)
         
         self.asks = self.update(self.asks, asks)
         self.bids = self.update(self.bids, bids)

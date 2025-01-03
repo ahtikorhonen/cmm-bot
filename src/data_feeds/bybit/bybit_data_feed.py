@@ -6,24 +6,42 @@ from orjson import loads
 
 from src.exchanges.bybit_order_book import BybitOrderBook
 from src.data_feeds.data_feed import DataFeed
-from src.data_feeds.bybit.endpoints import BYBIT_WS_ENDPOINT
+from src.data_feeds.bybit.endpoints import WS_ENDPOINT
 from utils.circular_buffer import CircularBuffer
 
 
 class BybitDataFeed(DataFeed):
+    
+    __bybit_topics__ = ["Orderbook", "BBA"]
 
     def __init__(self, order_book: BybitOrderBook, mid_prices: CircularBuffer) -> None:
         super().__init__(order_book)
         self.mid_prices = mid_prices
-        self.topics = [f"orderbook.{self.depth}.{self.symbol}", f"orderbook.1.{self.symbol}"]
+        self.ws_endpoint, self.topics = self.format_ws_req()
         self.topic_map = {self.topics[0]: self.order_book.process, self.topics[1]: self.process_bba}
         self.req = json.dumps({"op": "subscribe", "args": self.topics})
+        
+    def format_ws_req(self) -> tuple[str, list[str]]:
+        url = WS_ENDPOINT
+        topics = []
+        
+        for topic in self.__bybit_topics__:
+            stream = ""
+            match topic:
+                case "Orderbook":
+                    stream = f"orderbook.{self.depth}.{self.symbol}"
+                case "BBA":
+                    stream = f"orderbook.1.{self.symbol}"
+                case _:
+                    raise ValueError(f"Invalid topic '{topic}' for Bybit websocket feed")
+                
+            if stream:
+                topics.append(stream)
+        
+        return url, topics
 
     async def run(self) -> Union[Coroutine, None]:
-        """
-        Listens for messages on the WebSocket and updates the Bybit order book.
-        """
-        async with self.session.ws_connect(BYBIT_WS_ENDPOINT) as websocket:
+        async with self.session.ws_connect(self.ws_endpoint) as websocket:
             
             self.order_book.is_connected = True
             
@@ -32,6 +50,7 @@ class BybitDataFeed(DataFeed):
 
                 async for msg in websocket:
                     if msg.type == aiohttp.WSMsgType.TEXT:
+                                                
                         recv = loads(msg.data)
                                                 
                         if "topic" in recv:
@@ -40,9 +59,6 @@ class BybitDataFeed(DataFeed):
 
                     elif msg.type == aiohttp.WSMsgType.ERROR:
                         break
-
-            except aiohttp.ClientConnectionError as e:
-                await websocket.send_str(self.req)
 
             except Exception as e:
                 raise Exception(f"Error with Bybit data feed - {e}")
