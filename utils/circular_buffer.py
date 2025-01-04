@@ -1,25 +1,24 @@
 import numpy as np
-from numba import int32, float64
+from numba.types import int32, float64
 from numba.experimental import jitclass
 
 from utils.jit_funcs import nbround
 
 
-spec = [
-    ('arr', float64[:]),
-    ('capacity', int32),
-    ('size', int32),
-    ('last_bid', float64),
-    ('last_ask', float64),
-]
-
-@jitclass(spec)
+@jitclass
 class CircularBuffer:
-    def __init__(self, capacity=1000, dtype=float64):
-        """
-        A fixed size array for storing mid prices from which volatility is calculated
-        """
-        self.arr = np.zeros(capacity, dtype)
+    """
+    A fixed size array for storing mid prices from which volatility is calculated
+    """
+    
+    arr: float64[:]
+    capacity: int32
+    size: int32
+    last_bid: float64
+    last_ask: float64
+    
+    def __init__(self, capacity):
+        self.arr = np.zeros(capacity, dtype=np.float64)
         self.capacity = capacity
         self.size = 0
         self.last_bid = 0
@@ -36,14 +35,14 @@ class CircularBuffer:
             self.size += 1
         else:
             self.arr[0] = value
-            self.arr = np.roll(self.arr, -1)
+            self.arr = np.roll(self.arr, -1) # TODO: change to nbroll
 
     def vol(self):
         """
         Calculate standard deviation of the log differences of the values
         in the array i.e. volatility for mid prices
         """
-        log_diff = np.diff(np.log(self.arr[:self.size]))
+        log_diff = np.diff(np.log(self.arr[:self.size])) # TODO: implement nbvol
         return np.std(log_diff)
     
     def process_bba(self, bid, ask):
