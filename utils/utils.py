@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 
-def read_json(file_name: str):
+def read_json(file_name: str) -> dict:
     """
     Read json file to Python dict.
     :file_name (str): name of the json file to be read
