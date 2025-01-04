@@ -3,7 +3,7 @@ from typing import Coroutine, Union
 import aiohttp
 from orjson import loads
 
-from src.exchanges.binance_order_book import BinanceOrderBook
+from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
 from src.data_feeds.binance.endpoints import WS_ENDPOINT
 
@@ -12,11 +12,11 @@ class BinanceDataFeed(DataFeed):
     
     __binance_topics__ = ["Orderbook"]
 
-    def __init__(self, order_book: BinanceOrderBook) -> None:
+    def __init__(self, order_book: OrderBook) -> None:
         super().__init__(order_book)
         self.symbol = self.symbol.lower()
         self.ws_endpoint, self.topics = self.format_ws_req()
-        self.topic_map = {self.topics[0]: self.order_book.process}
+        self.topic_map = {self.topics[0]: self.parse_order_book_update}
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         url = WS_ENDPOINT

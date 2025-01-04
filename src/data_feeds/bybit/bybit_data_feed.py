@@ -4,7 +4,7 @@ from typing import Coroutine, Union
 import aiohttp
 from orjson import loads
 
-from src.exchanges.bybit_order_book import BybitOrderBook
+from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
 from src.data_feeds.bybit.endpoints import WS_ENDPOINT
 from utils.circular_buffer import CircularBuffer
@@ -14,11 +14,11 @@ class BybitDataFeed(DataFeed):
     
     __bybit_topics__ = ["Orderbook", "BBA"]
 
-    def __init__(self, order_book: BybitOrderBook, mid_prices: CircularBuffer) -> None:
+    def __init__(self, order_book: OrderBook, mid_prices: CircularBuffer) -> None:
         super().__init__(order_book)
         self.mid_prices = mid_prices
         self.ws_endpoint, self.topics = self.format_ws_req()
-        self.topic_map = {self.topics[0]: self.order_book.process, self.topics[1]: self.process_bba}
+        self.topic_map = {self.topics[0]: self.parse_order_book_update, self.topics[1]: self.process_bba}
         self.req = json.dumps({"op": "subscribe", "args": self.topics})
         
     def format_ws_req(self) -> tuple[str, list[str]]:
@@ -63,6 +63,7 @@ class BybitDataFeed(DataFeed):
             except Exception as e:
                 raise Exception(f"Error with Bybit data feed - {e}")
     
+    # TODO: move these to circular_buffer
     def process_bba(self, recv):
         best_bid = recv["data"]["b"]
         best_ask = recv["data"]["a"]

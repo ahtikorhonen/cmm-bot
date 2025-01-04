@@ -1,8 +1,9 @@
 from typing import Coroutine, Union
 
 from aiohttp import ClientSession
+import numpy as np
 
-from src.base_order_book import BaseOrderBook
+from src.order_book import OrderBook
 from src.parameters import mm_parameters
 
 
@@ -12,11 +13,17 @@ class DataFeed:
     The class contains all general functionality needed for subscribing
     to exchange specific websockets.
     """    
-    def __init__(self, order_book: BaseOrderBook):
+    def __init__(self, order_book: OrderBook):
         self.session = ClientSession()
         self.order_book = order_book
         self.symbol = mm_parameters["symbol"]
         self.depth = mm_parameters["order_book_depth"]
+        
+    def parse_order_book_update(self, msg: dict) -> None:
+        asks = np.array(msg["data"]["a"], dtype=np.float64)
+        bids = np.array(msg["data"]["b"], dtype=np.float64)
+        
+        self.order_book.update(asks, bids)
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         """

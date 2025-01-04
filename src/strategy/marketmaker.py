@@ -43,27 +43,15 @@ class MarketMaker:
 
         return scaled_spread
         
-    def fair_value(self, volume_threshold: int = 1_000_000) -> float:
+    def fair_value(self, dollar_depth: int = 1_000_000) -> float:
         """
         Calculate the fair value of an instrument as the weighted mean
         between the 1mm usd volume weighted mid prices on bybit and binance order books
-        :volume_threshold (int): volume threshold until which volume weighted average
+        :dollar_depth (int): volume threshold until which volume weighted average
                                    price is calculated from both sides of the order book
         :return (float): fair value of the traded instrument
         """
-        usd_price = self.market_data.mid_prices.mid_price()
-        bybit_vw_mid = vw_mid(
-                              self.market_data.bybit_order_book.bids,
-                              self.market_data.bybit_order_book.asks,
-                              volume_threshold,
-                              usd_price
-                            )
-        
-        binance_vw_mid = vw_mid(
-                              self.market_data.binance_order_book.bids,
-                              self.market_data.binance_order_book.asks,
-                              volume_threshold,
-                              usd_price
-                            )
+        bybit_vw_mid = self.market_data.bybit_order_book.vw_mid(dollar_depth)
+        binance_vw_mid = self.market_data.binance_order_book.vw_mid(dollar_depth)
         
         return bybit_vw_mid * 0.67 + binance_vw_mid * 0.33
