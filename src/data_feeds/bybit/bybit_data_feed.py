@@ -1,8 +1,6 @@
-import json
 from typing import Coroutine, Union
 
-import aiohttp
-from orjson import loads
+from aiohttp import WSMsgType
 
 from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
@@ -19,7 +17,7 @@ class BybitDataFeed(DataFeed):
         self.mid_prices = mid_prices
         self.ws_endpoint, self.topics = self.format_ws_req()
         self.topic_map = {self.topics[0]: self.parse_order_book_update, self.topics[1]: self.process_bba}
-        self.req = json.dumps({"op": "subscribe", "args": self.topics})
+        self.req = self.json_encoder.encode({"op": "subscribe", "args": self.topics})
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         url = WS_ENDPOINT
@@ -46,27 +44,27 @@ class BybitDataFeed(DataFeed):
             self.order_book.is_connected = True
             
             try:
-                await websocket.send_str(self.req)
+                await websocket.send_bytes(self.req)
 
                 async for msg in websocket:
-                    if msg.type == aiohttp.WSMsgType.TEXT:
+                    if msg.type == WSMsgType.TEXT:
                                                 
-                        recv = loads(msg.data)
+                        recv = self.json_decoder.decode(msg.data)
                                                 
-                        if "topic" in recv:
-                            topic_handler = self.topic_map[recv["topic"]]
+                        if recv.topic:
+                            topic_handler = self.topic_map[recv.topic]
                             topic_handler(recv)
 
-                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                    elif msg.type == WSMsgType.ERROR:
                         break
 
             except Exception as e:
                 raise Exception(f"Error with Bybit data feed - {e}")
     
-    # TODO: move these to circular_buffer
+    # TODO: move these to circular_buffer class
     def process_bba(self, recv):
-        best_bid = recv["data"]["b"]
-        best_ask = recv["data"]["a"]
+        best_bid = recv.data.b
+        best_ask = recv.data.a
         bb = self.parse_bba(best_bid)
         ba = self.parse_bba(best_ask)
 

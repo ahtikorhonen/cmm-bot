@@ -2,16 +2,17 @@ import asyncio
 
 from src.strategy.oms import OMS
 from src.strategy.marketmaker import MarketMaker
+from src.market_data import MarketData
 
 
 class Strategy:
-    def __init__(self, market_data):
+    def __init__(self, market_data: MarketData):
         self.market_data = market_data
     
-    async def init_ws_connections(self):
+    async def init_ws_connections(self) -> bool:
         """
-        Wait 10 seconds for orderbooks to initialize and then check that both websocket connections are alive
-        before starting to quote.
+        Wait 10 seconds for orderbooks to initialize and then check that both
+        websocket connections are alive before starting to quote.
         :return (bool): True if all connections are alive, False otherwise
         """
         await asyncio.sleep(10)
@@ -32,5 +33,5 @@ class Strategy:
         while True:
             await asyncio.sleep(1)
             bid, ask = market_maker.get_quotes()
-            #print(f"vol: {vol}")
+            print(f"{bid:.2f} - {self.market_data.mid_prices.mid_price():.2f} - {ask:.2f}")
             await oms.run(bid, ask)

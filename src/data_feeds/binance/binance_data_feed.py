@@ -1,7 +1,6 @@
 from typing import Coroutine, Union
 
-import aiohttp
-from orjson import loads
+from aiohttp import WSMsgType
 
 from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
@@ -43,15 +42,15 @@ class BinanceDataFeed(DataFeed):
 
             try:
                 async for msg in websocket:
-                    if msg.type == aiohttp.WSMsgType.TEXT:
+                    if msg.type == WSMsgType.TEXT:
                         
-                        recv = loads(msg.data)
+                        recv = self.json_decoder.decode(msg.data)
                                                                                         
-                        if "stream" in recv:
-                            topic_handler = self.topic_map[recv["stream"]]
+                        if recv.stream:
+                            topic_handler = self.topic_map[recv.stream]
                             topic_handler(recv)
 
-                    elif msg.type == aiohttp.WSMsgType.ERROR:
+                    elif msg.type == WSMsgType.ERROR:
                         break
                     
             except Exception as e:
