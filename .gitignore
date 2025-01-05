@@ -1,7 +1,4 @@
 .venv
 .env
 
-.so
-.c
-
 __pycache__/
