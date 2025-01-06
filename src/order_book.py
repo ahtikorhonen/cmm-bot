@@ -44,7 +44,7 @@ class OrderBook:
         new_full_bids = np.vstack(
             (
                 removed_old_prices[
-                    removed_old_prices[:, 1] != 0.0  # Re-remove zeros incase of overlap
+                    removed_old_prices[:, 1] != 0.0
                 ],
                 bids[bids[:, 1] != 0.0],
             )
@@ -52,7 +52,7 @@ class OrderBook:
 
         self._bids = new_full_bids[new_full_bids[:, 0].argsort()][::-1][:self._size]
 
-        # Remove overlapping asks.
+        # Remove overlapping asks
         if self._bids[0, 0] >= self._asks[0, 0]:
             overlapping_asks = self._asks[self._asks[:, 0] <= self._bids[0, 0]].shape[0]
             self._asks[:overlapping_asks].fill(0.0)
@@ -73,7 +73,7 @@ class OrderBook:
         new_full_asks = np.vstack(
             (
                 removed_old_prices[
-                    removed_old_prices[:, 1] != 0.0  # Re-remove zeros incase of overlap
+                    removed_old_prices[:, 1] != 0.0
                 ],
                 asks[asks[:, 1] != 0.0],
             )
@@ -81,25 +81,25 @@ class OrderBook:
 
         self._asks = new_full_asks[new_full_asks[:, 0].argsort()][: self._size]
 
-        # Remove overlapping bids.
+        # Remove overlapping bids
         if self._asks[0, 0] <= self._bids[0, 0]:
             overlapping_bids = self._bids[self._bids[:, 0] >= self._asks[0, 0]].shape[0]
             self._bids[:overlapping_bids].fill(0.0)
             self._bids[:, :] = nbroll(self._bids, -overlapping_bids, 0)
             
-    def update(self, asks: np.ndarray, bids: np.ndarray) -> None:
+    def update(self, bids: np.ndarray, asks: np.ndarray) -> None:
         """
-        Updates the order book with new ask and bid data
-        :asks (np.ndarray): new ask orders data, formatted as [[price, size], ...]
+        Updates the order book with new bids and asks
         :bids (np.ndarray): New bid orders data, formatted as [[price, size], ...]
+        :asks (np.ndarray): new ask orders data, formatted as [[price, size], ...]
         """
-        if asks.ndim == 2 and asks.shape[0] > 0:
-            self._sort_asks(asks)
-        
         if bids.ndim == 2 and bids.shape[0] > 0:
             self._sort_bids(bids)
         
-    def vw_mid(self, dollar_depth: float) -> float:
+        if asks.ndim == 2 and asks.shape[0] > 0:
+            self._sort_asks(asks)
+        
+    def vw_mid(self, dollar_depth: float, dollar_value: float) -> float:
         """
         Calculates the volume-weighted mid price up to a specified depth for both bids and asks
         :dollar_depth (float): The depth, in dollars, up to which the mid price is calculated
@@ -111,27 +111,29 @@ class OrderBook:
         ask_cum_size = 0.0
 
         for price, size in self._bids:
-            if bid_cum_size + size > dollar_depth:
+            usd_size = size * dollar_value
+            if bid_cum_size + usd_size > dollar_depth:
                 remaining_size = dollar_depth - bid_cum_size
                 bid_size_weighted_sum += price * remaining_size
                 bid_cum_size += remaining_size
                 break
 
-            bid_size_weighted_sum += price * size
-            bid_cum_size += size
+            bid_size_weighted_sum += price * usd_size
+            bid_cum_size += usd_size
 
             if bid_cum_size >= dollar_depth:
                 break
 
         for price, size in self._asks:
-            if ask_cum_size + size > dollar_depth:
+            usd_size = size * dollar_value
+            if ask_cum_size + usd_size > dollar_depth:
                 remaining_size = dollar_depth - ask_cum_size
                 ask_size_weighted_sum += price * remaining_size
                 ask_cum_size += remaining_size
                 break
 
-            ask_size_weighted_sum += price * size
-            ask_cum_size += size
+            ask_size_weighted_sum += price * usd_size
+            ask_cum_size += usd_size
 
             if ask_cum_size >= dollar_depth:
                 break
