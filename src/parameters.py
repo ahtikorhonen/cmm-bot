@@ -1,24 +1,19 @@
-from src.data_feeds.bybit.bybit_public_api import BybitPublicAPI
+from utils.dot_dict import dotdict
 
 
-mm_parameters = {
-    "lot_size": 0,
-    "tick_size": 0.01,
-    "min_spread": 5, # bps
-    "symbol": "ETHUSDT",
-    "order_book_depth": 200,
-    "min_q": 0,
-    "max_q": 0,
-}
-
-def update_mm_parameter(key, value):
-    try:
-        mm_parameters[key] = value
-    except KeyError:
-        raise KeyError(f"Key '{key}' does not exist.")
-    
-def initialize_parameters():
-    """
-    TODO: implement
-    """
-    pass    
+parameters = dotdict({
+    "TICK_SIZE": 0.01,
+    "MIN_SPREAD": 20, # bps
+    "SYMBOL": "ETHUSDT",
+    "CATEGORY": "linear",
+    "ORDER_BOOK_DEPTH": 200,
+    "MIN_Q": 0,
+    "MAX_Q": 0,
+    "MIN_LEV": 0,
+    "MAX_LEV": 0,
+    "LEV_STEP": 0,
+    "MIN_PRICE": 0,
+    "MAX_PRICE": 0,
+    "MIN_ORDER_QTY": 0,
+    "QTY_STEP": 0
+})

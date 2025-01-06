@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 from msgspec.json import Decoder, Encoder
 
 from src.order_book import OrderBook
-from src.parameters import mm_parameters
+from src.parameters import parameters
 from c_funcs.build_lib import list_list_str_to_float
 
 
@@ -21,8 +21,8 @@ class DataFeed:
     def __init__(self, order_book: OrderBook):
         self.session = ClientSession()
         self.order_book = order_book
-        self.symbol = mm_parameters["symbol"]
-        self.depth = mm_parameters["order_book_depth"]
+        self.symbol = parameters.SYMBOL
+        self.depth = parameters.ORDER_BOOK_DEPTH
         self.topic_map = {}
         
     def handle_recv(self, topic: str, data: dict) -> None:

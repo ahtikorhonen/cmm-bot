@@ -33,5 +33,5 @@ class Strategy:
         while True:
             await asyncio.sleep(1)
             bid, ask = market_maker.get_quotes()
-            print(f"{bid:.2f} - {self.market_data.mid_prices.mid_price():.2f} - {ask:.2f}")
+            print(f"{bid:.2f} - {self.market_data.mid_prices.lts:.2f} - {ask:.2f}")
             await oms.run(bid, ask)

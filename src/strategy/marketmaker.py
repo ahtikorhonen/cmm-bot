@@ -1,12 +1,12 @@
 from src.market_data import MarketData
-from src.parameters import mm_parameters
+from src.parameters import parameters
 from utils.jit_funcs import nbround
 
 
 class MarketMaker:
     def __init__(self, market_data: MarketData):
         self.market_data = market_data
-        self.min_spread = mm_parameters["min_spread"]
+        self.min_spread = parameters.MIN_SPREAD
 
     def get_quotes(self) -> tuple[float, float]:
         """

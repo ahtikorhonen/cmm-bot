@@ -2,7 +2,6 @@ TESTNET = True
 
 # Base endpoints
 WS_ENDPOINT = "wss://stream.bybit.com/v5/public/linear"
-INSTRUMENT_INFO = "/v5/market/instruments-info?category=linear&symbol={symbol}"
 
 # Position endpoints
 OPEN_ORDERS = "/v5/order/realtime"
