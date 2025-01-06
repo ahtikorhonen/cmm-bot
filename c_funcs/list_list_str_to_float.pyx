@@ -14,6 +14,8 @@ cpdef np.ndarray[np.double_t, ndim=2] parse(list[list[str]] data):
     """
     cdef uint16_t                           i, j
     cdef uint16_t                           n = len(data)
+    if n == 0:
+        return np.empty((0, 0), dtype=np.float64)
     cdef uint16_t                           m = len(data[0])
     cdef np.ndarray[np.double_t, ndim=2]    result = np.empty((n, m), dtype=np.double)
     cdef list[str]                          row
@@ -21,9 +23,6 @@ cpdef np.ndarray[np.double_t, ndim=2] parse(list[list[str]] data):
     cdef str                                item
     cdef const char*                        s
     cdef char*                              endptr
-
-    if n == 0:
-        return np.empty((0, 0), dtype=np.float64)
 
     for i in range(n):
         row = data[i]
