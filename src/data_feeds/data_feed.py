@@ -4,7 +4,6 @@ from aiohttp import ClientSession
 from msgspec.json import Decoder, Encoder
 
 from src.order_book import OrderBook
-from src.data_feeds.schema import MsgSchema
 from src.parameters import mm_parameters
 from c_funcs.build_lib import list_list_str_to_float
 
@@ -16,20 +15,26 @@ class DataFeed:
     to exchange specific websockets.
     """
     
-    json_decoder = Decoder(MsgSchema)
+    json_decoder = Decoder()
     json_encoder = Encoder()
     
-    def __init__(self, order_book: OrderBook): # TODO: implement parser class, handle ob snapshot
+    def __init__(self, order_book: OrderBook):
         self.session = ClientSession()
         self.order_book = order_book
         self.symbol = mm_parameters["symbol"]
         self.depth = mm_parameters["order_book_depth"]
+        self.topic_map = {}
         
-    def parse_order_book_update(self, msg) -> None:
-        asks = list_list_str_to_float.parse(msg.data.a)
-        bids = list_list_str_to_float.parse(msg.data.b)
+    def handle_recv(self, topic: str, data: dict) -> None:
+        """
+        TODO: document
+        """
+        topic_handler = self.topic_map.get(topic)
         
-        self.order_book.update(asks, bids)
+        if topic_handler:
+            bids = list_list_str_to_float.parse(data["b"])
+            asks = list_list_str_to_float.parse(data["a"])
+            topic_handler(bids, asks)
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         """
