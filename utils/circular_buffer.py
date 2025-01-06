@@ -24,7 +24,7 @@ class CircularBuffer:
         self.bid = 0
         self.ask = 0
         
-    def append(self, value: float):
+    def append(self, value: float) -> None:
         """
         Appends values to the array until full and then starts to slide
         the window when new values arrive keeping the size fixed
@@ -37,19 +37,22 @@ class CircularBuffer:
             self.arr[0] = value
             self.arr = np.roll(self.arr, -1) # TODO: change to nbroll
 
-    def vol(self):
+    def vol(self) -> float:
         """
-        Calculate standard deviation of the log differences of the values
-        in the array i.e. volatility for mid prices
+        Volatility
         """
         return nbvol(self.arr[:self.size])
     
     def update(self, bids: np.ndarray, asks: np.ndarray) -> None:
-        
+        """
+        Parse new best bid and ask prices, append new mid price to the array
+        :bids (np.ndarray): New bid orders data, formatted as [[price, size], ...]
+        :asks (np.ndarray): new ask orders data, formatted as [[price, size], ...] 
+        """
         if bids.size > 0:
             bids = bids[bids[:,1] != 0.0]
             self.bid = bids[0][0]
-            
+        
         if asks.size > 0: 
             asks = asks[asks[:,1] != 0.0]
             self.ask = asks[0][0]
@@ -57,7 +60,8 @@ class CircularBuffer:
         mid_price = nbround((self.bid + self.ask) / 2, 2)
         self.append(mid_price)
         
-    def mid_price(self):
+    @property
+    def lts(self) -> float:
         """
         Returns the latest recorded mid price
         """

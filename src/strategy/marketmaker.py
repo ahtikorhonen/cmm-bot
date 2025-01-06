@@ -1,5 +1,4 @@
 from src.market_data import MarketData
-from src.strategy.features import vw_mid
 from src.parameters import mm_parameters
 from utils.jit_funcs import nbround
 
@@ -38,7 +37,7 @@ class MarketMaker:
         bps_conversion_factor = 10**-5
         model_slope = 0.5
         
-        base_spread = self.min_spread * self.market_data.mid_prices.mid_price() * bps_conversion_factor
+        base_spread = self.min_spread * self.market_data.mid_prices.lts * bps_conversion_factor
         scaled_spread = base_spread + model_slope * self.market_data.mid_prices.vol()
 
         return scaled_spread
@@ -51,7 +50,7 @@ class MarketMaker:
                                    price is calculated from both sides of the order book
         :return (float): fair value of the traded instrument
         """
-        bybit_vw_mid = self.market_data.bybit_order_book.vw_mid(dollar_depth)
-        binance_vw_mid = self.market_data.binance_order_book.vw_mid(dollar_depth)
+        bybit_vw_mid = self.market_data.bybit_order_book.vw_mid(dollar_depth, self.market_data.mid_prices.lts)
+        binance_vw_mid = self.market_data.binance_order_book.vw_mid(dollar_depth, self.market_data.mid_prices.lts)
         
         return bybit_vw_mid * 0.67 + binance_vw_mid * 0.33
