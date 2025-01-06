@@ -20,9 +20,3 @@ class MarketData:
         
         self.current_orders = {}
         self.mid_prices = CircularBuffer(capacity=1000)
-        
-    def bybit_bba(self) -> float:
-        return self.bybit_order_book.bids[0][0], self.bybit_order_book.asks[0][0]
-        
-    def binance_bba(self) -> float:
-        return self.binance_order_book.bids[0][0], self.binance_order_book.asks[0][0]

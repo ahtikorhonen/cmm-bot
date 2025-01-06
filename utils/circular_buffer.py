@@ -2,7 +2,7 @@ import numpy as np
 from numba.types import int32, float64
 from numba.experimental import jitclass
 
-from utils.jit_funcs import nbround
+from utils.jit_funcs import nbround, nbvol
 
 
 @jitclass
@@ -14,17 +14,17 @@ class CircularBuffer:
     arr: float64[:]
     capacity: int32
     size: int32
-    last_bid: float64
-    last_ask: float64
+    bid: float64
+    ask: float64
     
     def __init__(self, capacity):
         self.arr = np.zeros(capacity, dtype=np.float64)
         self.capacity = capacity
         self.size = 0
-        self.last_bid = 0
-        self.last_ask = 0
+        self.bid = 0
+        self.ask = 0
         
-    def append(self, value):
+    def append(self, value: float):
         """
         Appends values to the array until full and then starts to slide
         the window when new values arrive keeping the size fixed
@@ -42,19 +42,20 @@ class CircularBuffer:
         Calculate standard deviation of the log differences of the values
         in the array i.e. volatility for mid prices
         """
-        log_diff = np.diff(np.log(self.arr[:self.size])) # TODO: implement nbvol
-        return np.std(log_diff)
+        return nbvol(self.arr[:self.size])
     
-    def process_bba(self, bid, ask):
-        if bid == 0:
-            bid = self.last_bid
-        if ask == 0:
-            ask = self.last_ask
+    def update(self, bids: np.ndarray, asks: np.ndarray) -> None:
         
-        mid = nbround((bid + ask) / 2, 2)
-        self.append(mid)
-        self.last_bid = bid
-        self.last_ask = ask
+        if bids.size > 0:
+            bids = bids[bids[:,1] != 0.0]
+            self.bid = bids[0][0]
+            
+        if asks.size > 0: 
+            asks = asks[asks[:,1] != 0.0]
+            self.ask = asks[0][0]
+            
+        mid_price = nbround((self.bid + self.ask) / 2, 2)
+        self.append(mid_price)
         
     def mid_price(self):
         """

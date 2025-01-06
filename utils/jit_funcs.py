@@ -58,3 +58,8 @@ def nbroll(a: np.ndarray, shift: int, axis: int) -> np.ndarray:
             out[:, new_index] = a[:, i]
 
     return out
+
+@njit(inline="always")
+def nbvol(a: np.ndarray) -> float:
+    log_ret = np.diff(np.log(a))
+    return np.std(log_ret)

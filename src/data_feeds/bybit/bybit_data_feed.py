@@ -16,7 +16,7 @@ class BybitDataFeed(DataFeed):
         super().__init__(order_book)
         self.mid_prices = mid_prices
         self.ws_endpoint, self.topics = self.format_ws_req()
-        self.topic_map = {self.topics[0]: self.parse_order_book_update, self.topics[1]: self.process_bba}
+        self.topic_map = {self.topics[0]: self.order_book.update, self.topics[1]: self.mid_prices.update}
         self.req = self.json_encoder.encode({"op": "subscribe", "args": self.topics})
         
     def format_ws_req(self) -> tuple[str, list[str]]:
@@ -50,33 +50,13 @@ class BybitDataFeed(DataFeed):
                     if msg.type == WSMsgType.TEXT:
                                                 
                         recv = self.json_decoder.decode(msg.data)
-                                                
-                        if recv.topic:
-                            topic_handler = self.topic_map[recv.topic]
-                            topic_handler(recv)
+                        topic = recv.get("topic")
+                        
+                        if topic:
+                            self.handle_recv(topic, recv["data"])
 
                     elif msg.type == WSMsgType.ERROR:
                         break
 
             except Exception as e:
                 raise Exception(f"Error with Bybit data feed - {e}")
-    
-    # TODO: move these to circular_buffer class
-    def process_bba(self, recv):
-        best_bid = recv.data.b
-        best_ask = recv.data.a
-        bb = self.parse_bba(best_bid)
-        ba = self.parse_bba(best_ask)
-
-        self.mid_prices.process_bba(bb, ba)
-        
-    def parse_bba(self, tick):
-        price = 0
-        
-        if tick:
-            if len(tick) == 2:
-                price = float(tick[0][0]) if float(tick[0][1]) != 0 else float(tick[1][0])
-            else:
-                price = float(tick[0][0])
-        
-        return price

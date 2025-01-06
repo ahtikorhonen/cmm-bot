@@ -15,7 +15,7 @@ class BinanceDataFeed(DataFeed):
         super().__init__(order_book)
         self.symbol = self.symbol.lower()
         self.ws_endpoint, self.topics = self.format_ws_req()
-        self.topic_map = {self.topics[0]: self.parse_order_book_update}
+        self.topic_map = {self.topics[0]: self.order_book.update}
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         url = WS_ENDPOINT
@@ -45,10 +45,10 @@ class BinanceDataFeed(DataFeed):
                     if msg.type == WSMsgType.TEXT:
                         
                         recv = self.json_decoder.decode(msg.data)
-                                                                                        
-                        if recv.stream:
-                            topic_handler = self.topic_map[recv.stream]
-                            topic_handler(recv)
+                        topic = recv.get("stream")
+                        
+                        if topic:
+                            self.handle_recv(topic, recv["data"])
 
                     elif msg.type == WSMsgType.ERROR:
                         break
