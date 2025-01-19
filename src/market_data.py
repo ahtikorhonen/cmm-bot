@@ -1,9 +1,9 @@
 import os
 
 from src.order_book import OrderBook
-from utils.circular_buffer import CircularBuffer
 from src.data_feeds.bybit.bybit_public_api import BybitPublicAPI
 from src.parameters import parameters
+from utils.circular_buffer import CircularBuffer
 
 
 class MarketData:
@@ -13,15 +13,15 @@ class MarketData:
     def __init__(self) -> None:
         self.api_key = os.getenv("API_KEY")
         self.api_secret = os.getenv("API_SECRET")
+        
         if not self.api_key or not self.api_secret:
             raise ValueError("Missing API key and/or secret!")
         
         self.bybit_public_api = BybitPublicAPI(self.api_key, self.api_secret)
-                
         self.bybit_order_book = OrderBook(size=500)
         self.binance_order_book = OrderBook(size=500)
-        
         self.current_orders = {}
+        self.inventory = 0
         self.mid_prices = CircularBuffer(capacity=1000)
         
         self._set_instrument_info_()

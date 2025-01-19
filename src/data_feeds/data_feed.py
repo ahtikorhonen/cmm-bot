@@ -27,7 +27,7 @@ class DataFeed:
         
     def handle_recv(self, topic: str, data: dict) -> None:
         """
-        TODO: document
+        Parses the bid and ask arrays and proccesses the new data
         """
         topic_handler = self.topic_map.get(topic)
         

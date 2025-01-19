@@ -6,6 +6,7 @@ from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
 from src.data_feeds.bybit.endpoints import WS_ENDPOINT
 from utils.circular_buffer import CircularBuffer
+from src.data_feeds.picows_client import SingleWsConnection
 
 
 class BybitDataFeed(DataFeed):
@@ -17,7 +18,7 @@ class BybitDataFeed(DataFeed):
         self.mid_prices = mid_prices
         self.ws_endpoint, self.topics = self.format_ws_req()
         self.topic_map = {self.topics[0]: self.order_book.update, self.topics[1]: self.mid_prices.update}
-        self.req = self.json_encoder.encode({"op": "subscribe", "args": self.topics})
+        self.req = [{"op": "subscribe", "args": self.topics}]
         
     def format_ws_req(self) -> tuple[str, list[str]]:
         url = WS_ENDPOINT
@@ -39,6 +40,23 @@ class BybitDataFeed(DataFeed):
         return url, topics
 
     async def run(self) -> Union[Coroutine, None]:
+        ws_connection = SingleWsConnection()
+        
+        await ws_connection.start(self.ws_endpoint, self.req)
+        self.order_book.is_connected = True
+        
+        while ws_connection.running:
+            try:
+                seq_id, timestamp, payload = await ws_connection.queue.get()
+
+                print(f"Seq ID: {seq_id}, Timestamp: {timestamp}, Payload: {payload}")
+
+                ws_connection.queue.task_done()
+                
+            except Exception as e:
+                print(f"Error while consuming messages: {e}")
+    
+    """async def run(self) -> Union[Coroutine, None]:
         async with self.session.ws_connect(self.ws_endpoint) as websocket:
             
             self.order_book.is_connected = True
@@ -59,4 +77,4 @@ class BybitDataFeed(DataFeed):
                         break
 
             except Exception as e:
-                raise Exception(f"Error with Bybit data feed - {e}")
+                raise Exception(f"Error with Bybit data feed - {e}")"""
