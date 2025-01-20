@@ -1,8 +1,5 @@
 from typing import Coroutine, Union
 
-from aiohttp import ClientSession
-from msgspec.json import Decoder, Encoder
-
 from src.order_book import OrderBook
 from src.parameters import parameters
 from c_funcs.build_lib import list_list_str_to_float
@@ -14,12 +11,7 @@ class DataFeed:
     The class contains all general functionality needed for subscribing
     to exchange specific websockets.
     """
-    
-    json_decoder = Decoder()
-    json_encoder = Encoder()
-    
     def __init__(self, order_book: OrderBook):
-        self.session = ClientSession()
         self.order_book = order_book
         self.symbol = parameters.SYMBOL
         self.depth = parameters.ORDER_BOOK_DEPTH

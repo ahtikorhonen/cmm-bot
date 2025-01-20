@@ -1,7 +1,5 @@
 from typing import Coroutine, Union
 
-from aiohttp import WSMsgType
-
 from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
 from src.data_feeds.bybit.endpoints import WS_ENDPOINT
@@ -41,40 +39,18 @@ class BybitDataFeed(DataFeed):
 
     async def run(self) -> Union[Coroutine, None]:
         ws_connection = SingleWsConnection()
-        
         await ws_connection.start(self.ws_endpoint, self.req)
         self.order_book.is_connected = True
         
         while ws_connection.running:
             try:
-                seq_id, timestamp, payload = await ws_connection.queue.get()
-
-                print(f"Seq ID: {seq_id}, Timestamp: {timestamp}, Payload: {payload}")
+                seq_id, ts, recv = await ws_connection.queue.get()
+                topic = recv.get("topic")
+                
+                if topic:
+                    self.handle_recv(topic, recv["data"])
 
                 ws_connection.queue.task_done()
                 
             except Exception as e:
-                print(f"Error while consuming messages: {e}")
-    
-    """async def run(self) -> Union[Coroutine, None]:
-        async with self.session.ws_connect(self.ws_endpoint) as websocket:
-            
-            self.order_book.is_connected = True
-            
-            try:
-                await websocket.send_bytes(self.req)
-
-                async for msg in websocket:
-                    if msg.type == WSMsgType.TEXT:
-                                                
-                        recv = self.json_decoder.decode(msg.data)
-                        topic = recv.get("topic")
-                        
-                        if topic:
-                            self.handle_recv(topic, recv["data"])
-
-                    elif msg.type == WSMsgType.ERROR:
-                        break
-
-            except Exception as e:
-                raise Exception(f"Error with Bybit data feed - {e}")"""
+                raise Exception(f"Error while consuming messages - {str(e)}")

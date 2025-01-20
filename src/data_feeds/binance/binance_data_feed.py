@@ -1,10 +1,9 @@
 from typing import Coroutine, Union
 
-from aiohttp import WSMsgType
-
 from src.order_book import OrderBook
 from src.data_feeds.data_feed import DataFeed
 from src.data_feeds.binance.endpoints import WS_ENDPOINT
+from src.data_feeds.picows_client import SingleWsConnection
 
 
 class BinanceDataFeed(DataFeed):
@@ -34,24 +33,21 @@ class BinanceDataFeed(DataFeed):
                 topics.append(stream[:-1])
         
         return url[:-1], topics
-
+    
     async def run(self) -> Union[Coroutine, None]:
-        async with self.session.ws_connect(self.ws_endpoint) as websocket:
-            
-            self.order_book.is_connected = True
-
+        ws_connection = SingleWsConnection()
+        await ws_connection.start(self.ws_endpoint)
+        self.order_book.is_connected = True
+        
+        while ws_connection.running:
             try:
-                async for msg in websocket:
-                    if msg.type == WSMsgType.TEXT:
-                        
-                        recv = self.json_decoder.decode(msg.data)
-                        topic = recv.get("stream")
-                        
-                        if topic:
-                            self.handle_recv(topic, recv["data"])
+                seq_id, ts, recv = await ws_connection.queue.get()
+                topic = recv.get("stream")
 
-                    elif msg.type == WSMsgType.ERROR:
-                        break
-                    
+                if topic:
+                    self.handle_recv(topic, recv["data"])
+
+                ws_connection.queue.task_done()
+                
             except Exception as e:
-                raise Exception(f"Error with Binance data feed - {e}")
+                raise Exception(f"Error while consuming messages - {str(e)}")
